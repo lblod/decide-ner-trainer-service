@@ -201,7 +201,7 @@ def convert_snapshot(output_path: str, export_type: str, export_id: str = None):
     logger.info(f"Converted export downloaded. File saved to: {out_path}")
 
 
-def download_data(output_path: str):
+def download_data(output_path: str = "./data/"):
     export_id = export_and_download_snapshot(output_path)
     logger.info(f"Data export ID: {export_id}")
 

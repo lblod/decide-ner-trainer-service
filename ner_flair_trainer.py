@@ -7,13 +7,15 @@ from flair.embeddings import TransformerWordEmbeddings
 from flair.models import SequenceTagger
 from flair.trainers import ModelTrainer
 from huggingface_hub import create_repo, upload_folder
-from dot_env import load_dotenv
+from dotenv import load_dotenv
 
 
 load_dotenv()
 
 
-def train_flair(data_folder: str, hf_model_name: str, transformer_embedding_model: str = "xlm-roberta-large"):
+def train_flair(data_folder: str, hf_model_name: str,
+                transformer_embedding_model: str = "xlm-roberta-large",
+                max_epochs: int = 20, learning_rate: float = 5.0e-6):
     columns = {0: "text", 3: "ner"}
 
     corpus = ColumnCorpus(
@@ -49,10 +51,11 @@ def train_flair(data_folder: str, hf_model_name: str, transformer_embedding_mode
     trainer = ModelTrainer(tagger, corpus)
 
     trainer.fine_tune(f"resources/taggers/{hf_model_name}",
-                      learning_rate=5.0e-6,
+                      learning_rate=learning_rate,
                       mini_batch_size=4,
                       # remove this parameter to speed up computation if you have a big GPU
                       mini_batch_chunk_size=1,
+                      max_epochs=max_epochs
                       )
 
     repo_id = f"{os.getenv('HUGGINGFACE_HANDLE')}/decide-{hf_model_name}"
@@ -62,7 +65,7 @@ def train_flair(data_folder: str, hf_model_name: str, transformer_embedding_mode
     upload_folder(
         repo_id=repo_id,
         folder_path=f"resources/taggers/{hf_model_name}",
-        path_in_repo=".",
+        path_in_repo="."
     )
 
     print("Pushed model to:", f"https://huggingface.co/{repo_id}")
