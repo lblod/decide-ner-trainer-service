@@ -1,9 +1,16 @@
 # based on https://flairnlp.github.io/docs/tutorial-training/how-to-train-sequence-tagger
 
+import os
+import fire
 from flair.datasets import ColumnCorpus
 from flair.embeddings import TransformerWordEmbeddings
 from flair.models import SequenceTagger
 from flair.trainers import ModelTrainer
+from huggingface_hub import create_repo, upload_folder
+from dot_env import load_dotenv
+
+
+load_dotenv()
 
 
 def train_flair(data_folder: str, hf_model_name: str, transformer_embedding_model: str = "xlm-roberta-large"):
@@ -47,3 +54,19 @@ def train_flair(data_folder: str, hf_model_name: str, transformer_embedding_mode
                       # remove this parameter to speed up computation if you have a big GPU
                       mini_batch_chunk_size=1,
                       )
+
+    repo_id = f"{os.getenv('HUGGINGFACE_HANDLE')}/decide-{hf_model_name}"
+
+    create_repo(repo_id, private=False, exist_ok=True)
+
+    upload_folder(
+        repo_id=repo_id,
+        folder_path=f"resources/taggers/{hf_model_name}",
+        path_in_repo=".",
+    )
+
+    print("Pushed model to:", f"https://huggingface.co/{repo_id}")
+
+
+if __name__ == '__main__':
+    fire.Fire(train_flair)
